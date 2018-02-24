@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Jose Parreno Garcia" />
+
+
+<title>Dimensionality reduction</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Dimensionality reduction</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Dimensionality reduction</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Dimensionality reduction</h1>
+<h4 class="author"><em>Jose Parreno Garcia</em></h4>
+<h4 class="date"><em>February 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#preparing-the-data"><span class="toc-section-number">1</span> Preparing the data</a></li>
+<li><a href="#performing-feature-selection-with-fselector"><span class="toc-section-number">2</span> Performing feature selection with FSelector</a></li>
+<li><a href="#performing-dimension-reduction-with-pca"><span class="toc-section-number">3</span> Performing dimension reduction with PCA</a></li>
+<li><a href="#determining-the-number-of-principal-components"><span class="toc-section-number">4</span> Determining the number of principal components</a><ul>
+<li><a href="#using-the-scree-method"><span class="toc-section-number">4.1</span> Using the Scree method</a></li>
+<li><a href="#using-the-scree-method-1"><span class="toc-section-number">4.2</span> Using the Scree method</a></li>
+</ul></li>
+<li><a href="#visualizing-multivariate-data-using-biplot"><span class="toc-section-number">5</span> Visualizing multivariate data using biplot</a></li>
+<li><a href="#dimension-reduction-with-mds"><span class="toc-section-number">6</span> Dimension reduction with MDS</a><ul>
+<li><a href="#metric-mds"><span class="toc-section-number">6.1</span> Metric MDS</a></li>
+<li><a href="#non-metric-mds"><span class="toc-section-number">6.2</span> Non metric MDS</a></li>
+<li><a href="#presenting-an-mds-object-as-a-graph"><span class="toc-section-number">6.3</span> Presenting an MDS object as a graph</a></li>
+</ul></li>
+<li><a href="#dimension-reduction-with-svd"><span class="toc-section-number">7</span> Dimension reduction with SVD</a><ul>
+<li><a href="#compressing-images-using-svd"><span class="toc-section-number">7.1</span> Compressing images using SVD</a></li>
+</ul></li>
+<li><a href="#nonlinear-dimension-reduction"><span class="toc-section-number">8</span> Nonlinear dimension reduction</a><ul>
+<li><a href="#using-isomap"><span class="toc-section-number">8.1</span> Using ISOMAP</a></li>
+<li><a href="#using-local-linear-embedding"><span class="toc-section-number">8.2</span> Using Local Linear Embedding</a></li>
+</ul></li>
+</ul>
+</div>
+
+<style>
+body {
+text-align: justify}
+
+</style>
+<p><br></p>
+<pre class="r"><code>library(knitr)</code></pre>
+<p><br></p>
+<p>We will look at:</p>
+<ul>
+<li>Performing feature selection with FSelector</li>
+<li>Performing dimension reduction with PCA</li>
+<li>Determining the number of principal components</li>
+<li>Visualizing multivariate data using biplot</li>
+<li>Dimension reduction with MDS</li>
+<li>Dimension reduction with SVD</li>
+<li>Nonlinear dimension reduction</li>
+</ul>
+<p><br></p>
+<p><img src="images/1.PNG" width="709" /><img src="images/2.PNG" width="669" /></p>
+<p><br></p>
+<div id="preparing-the-data" class="section level1">
+<h1><span class="header-section-number">1</span> Preparing the data</h1>
+<pre class="r"><code>library(C50)
+
+data(churn)
+
+str(churnTrain)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    3333 obs. of  20 variables:
+##  $ state                        : Factor w/ 51 levels &quot;AK&quot;,&quot;AL&quot;,&quot;AR&quot;,..: 17 36 32 36 37 2 20 25 19 50 ...
+##  $ account_length               : int  128 107 137 84 75 118 121 147 117 141 ...
+##  $ area_code                    : Factor w/ 3 levels &quot;area_code_408&quot;,..: 2 2 2 1 2 3 3 2 1 2 ...
+##  $ international_plan           : Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 1 2 2 2 1 2 1 2 ...
+##  $ voice_mail_plan              : Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 2 2 1 1 1 1 2 1 1 2 ...
+##  $ number_vmail_messages        : int  25 26 0 0 0 0 24 0 0 37 ...
+##  $ total_day_minutes            : num  265 162 243 299 167 ...
+##  $ total_day_calls              : int  110 123 114 71 113 98 88 79 97 84 ...
+##  $ total_day_charge             : num  45.1 27.5 41.4 50.9 28.3 ...
+##  $ total_eve_minutes            : num  197.4 195.5 121.2 61.9 148.3 ...
+##  $ total_eve_calls              : int  99 103 110 88 122 101 108 94 80 111 ...
+##  $ total_eve_charge             : num  16.78 16.62 10.3 5.26 12.61 ...
+##  $ total_night_minutes          : num  245 254 163 197 187 ...
+##  $ total_night_calls            : int  91 103 104 89 121 118 118 96 90 97 ...
+##  $ total_night_charge           : num  11.01 11.45 7.32 8.86 8.41 ...
+##  $ total_intl_minutes           : num  10 13.7 12.2 6.6 10.1 6.3 7.5 7.1 8.7 11.2 ...
+##  $ total_intl_calls             : int  3 3 5 7 3 6 7 6 4 5 ...
+##  $ total_intl_charge            : num  2.7 3.7 3.29 1.78 2.73 1.7 2.03 1.92 2.35 3.02 ...
+##  $ number_customer_service_calls: int  1 1 0 2 3 0 3 0 1 0 ...
+##  $ churn                        : Factor w/ 2 levels &quot;yes&quot;,&quot;no&quot;: 2 2 2 2 2 2 2 2 2 2 ...</code></pre>
+<pre class="r"><code># Remove certain variables that we are not going to use
+churnTrain = churnTrain[,! names(churnTrain) %in% c(&quot;state&quot;
+                                                    , &quot;area_code&quot;
+                                                    , &quot;account_length&quot;) ]
+
+set.seed(2)
+ind = sample(2, nrow(churnTrain), replace = TRUE, prob=c(0.7,0.3))
+trainset = churnTrain[ind == 1,]
+testset = churnTrain[ind == 2,]
+
+dim(trainset)</code></pre>
+<pre><code>## [1] 2315   17</code></pre>
+<pre class="r"><code>dim(testset)</code></pre>
+<pre><code>## [1] 1018   17</code></pre>
+<pre class="r"><code>split.data = function(data, p = 0.7, s = 666){
+   set.seed(s)
+   index = sample(1:dim(data)[1])
+   train = data[index[1:floor(dim(data)[1] * p)], ]
+   test = data[index[((ceiling(dim(data)[1] * p)) + 1):dim(data)[1]], ]
+   return(list(train = train, test = test))
+   }</code></pre>
+</div>
+<div id="performing-feature-selection-with-fselector" class="section level1">
+<h1><span class="header-section-number">2</span> Performing feature selection with FSelector</h1>
+<pre class="r"><code>library(rpart)
+library(FSelector)
+
+weights = random.forest.importance(churn~., trainset,importance.type = 1)
+print(weights)</code></pre>
+<pre><code>##                               attr_importance
+## international_plan                 101.488897
+## voice_mail_plan                     26.806457
+## number_vmail_messages               32.548730
+## total_day_minutes                   54.977767
+## total_day_calls                     -1.167211
+## total_day_charge                    52.027720
+## total_eve_minutes                   33.423537
+## total_eve_calls                     -3.658911
+## total_eve_charge                    33.461508
+## total_night_minutes                 23.415211
+## total_night_calls                    1.965830
+## total_night_charge                  23.584998
+## total_intl_minutes                  33.821813
+## total_intl_calls                    52.082492
+## total_intl_charge                   34.139458
+## number_customer_service_calls      119.576718</code></pre>
+<pre class="r"><code># Obtain the attributes of the top 5 weights
+subset = cutoff.k(weights, 5)
+f = as.simple.formula(subset, &quot;Class&quot;)
+print(f)</code></pre>
+<pre><code>## Class ~ number_customer_service_calls + international_plan + 
+##     total_day_minutes + total_intl_calls + total_day_charge
+## &lt;environment: 0x000000001f8d3cc0&gt;</code></pre>
+<pre class="r"><code># Function to evaluate and select the feature subsets (with cross validation)
+evaluator = function(subset) {
+   k = 5
+   set.seed(2)
+   ind = sample(5, nrow(trainset), replace = TRUE)
+   results = sapply(1:k, function(i) {
+     train = trainset[ind ==i,]
+     test = trainset[ind !=i,]
+     tree = rpart(as.simple.formula(subset, &quot;churn&quot;), trainset)
+     error.rate = sum(test$churn != predict(tree, test,
+                                             type=&quot;class&quot;)) / nrow(test)
+     return(1 - error.rate)
+     })
+   return(mean(results))
+}
+
+# find optimum feature subset with the originial subset
+attr.subset = hill.climbing.search(names(trainset)
+                                   [!names(trainset) %in% &quot;churn&quot;], evaluator)
+
+f = as.simple.formula(attr.subset, &quot;churn&quot;)
+print(f)</code></pre>
+<pre><code>## churn ~ international_plan + number_vmail_messages + total_day_minutes + 
+##     total_eve_minutes + total_eve_calls + total_eve_charge + 
+##     total_night_minutes + total_night_calls + total_intl_calls + 
+##     total_intl_charge + number_customer_service_calls
+## &lt;environment: 0x000000004f7e33b8&gt;</code></pre>
+<p><br></p>
+</div>
+<div id="performing-dimension-reduction-with-pca" class="section level1">
+<h1><span class="header-section-number">3</span> Performing dimension reduction with PCA</h1>
+<p><img src="images/3.PNG" width="541" /><img src="images/4.PNG" width="705" /><img src="images/5.PNG" width="694" /><img src="images/6.PNG" width="720" /><img src="images/7.PNG" width="496" /></p>
+<pre class="r"><code>data(swiss)
+
+swiss = swiss[,-1]
+
+swiss.pca = prcomp(swiss,
+                   center = TRUE,
+                   scale = TRUE)
+swiss.pca</code></pre>
+<pre><code>## Standard deviations (1, .., p=5):
+## [1] 1.6228065 1.0354873 0.9033447 0.5592765 0.4067472
+## 
+## Rotation (n x k) = (5 x 5):
+##                          PC1         PC2          PC3        PC4         PC5
+## Agriculture       0.52396452 -0.25834215  0.003003672 -0.8090741  0.06411415
+## Examination      -0.57185792 -0.01145981 -0.039840522 -0.4224580 -0.70198942
+## Education        -0.49150243  0.19028476  0.539337412 -0.3321615  0.56656945
+## Catholic          0.38530580  0.36956307  0.725888143  0.1007965 -0.42176895
+## Infant.Mortality  0.09167606  0.87197641 -0.424976789 -0.2154928  0.06488642</code></pre>
+<pre class="r"><code>summary(swiss.pca)</code></pre>
+<pre><code>## Importance of components%s:
+##                           PC1    PC2    PC3     PC4     PC5
+## Standard deviation     1.6228 1.0355 0.9033 0.55928 0.40675
+## Proportion of Variance 0.5267 0.2145 0.1632 0.06256 0.03309
+## Cumulative Proportion  0.5267 0.7411 0.9043 0.96691 1.00000</code></pre>
+<pre class="r"><code>predict(swiss.pca, newdata=head(swiss, 1))</code></pre>
+<pre><code>##                   PC1       PC2        PC3      PC4       PC5
+## Courtelary -0.9390479 0.8047122 -0.8118681 1.000307 0.4618643</code></pre>
+<pre class="r"><code>swiss.princomp = princomp(swiss,
+                          center = TRUE,
+                          scale = TRUE)</code></pre>
+<pre><code>## Warning: In princomp.default(swiss, center = TRUE, scale = TRUE) :
+##  extra arguments &#39;center&#39;, &#39;scale&#39; will be disregarded</code></pre>
+<pre class="r"><code>swiss.princomp</code></pre>
+<pre><code>## Call:
+## princomp(x = swiss, center = TRUE, scale = TRUE)
+## 
+## Standard deviations:
+##    Comp.1    Comp.2    Comp.3    Comp.4    Comp.5 
+## 42.896335 21.201887  7.587978  3.687888  2.721105 
+## 
+##  5  variables and  47 observations.</code></pre>
+<pre class="r"><code>summary(swiss.princomp)</code></pre>
+<pre><code>## Importance of components:
+##                            Comp.1     Comp.2     Comp.3      Comp.4      Comp.5
+## Standard deviation     42.8963346 21.2018868 7.58797830 3.687888330 2.721104713
+## Proportion of Variance  0.7770024  0.1898152 0.02431275 0.005742983 0.003126601
+## Cumulative Proportion   0.7770024  0.9668177 0.99113042 0.996873399 1.000000000</code></pre>
+<pre class="r"><code>predict(swiss.princomp, swiss[1,])</code></pre>
+<pre><code>##               Comp.1    Comp.2   Comp.3   Comp.4   Comp.5
+## Courtelary -38.95923 -20.40504 12.45808 4.713234 -1.46634</code></pre>
+<pre class="r"><code>library(psych)
+library(GPArotation)
+
+swiss.principal = principal(swiss, nfactors=5, rotate=&quot;none&quot;)
+swiss.principal</code></pre>
+<pre><code>## Principal Components Analysis
+## Call: principal(r = swiss, nfactors = 5, rotate = &quot;none&quot;)
+## Standardized loadings (pattern matrix) based upon correlation matrix
+##                    PC1   PC2   PC3   PC4   PC5 h2      u2 com
+## Agriculture      -0.85 -0.27  0.00  0.45 -0.03  1 5.6e-16 1.8
+## Examination       0.93 -0.01 -0.04  0.24  0.29  1 2.8e-15 1.3
+## Education         0.80  0.20  0.49  0.19 -0.23  1 2.2e-15 2.1
+## Catholic         -0.63  0.38  0.66 -0.06  0.17  1 1.1e-15 2.8
+## Infant.Mortality -0.15  0.90 -0.38  0.12 -0.03  1 6.7e-16 1.5
+## 
+##                        PC1  PC2  PC3  PC4  PC5
+## SS loadings           2.63 1.07 0.82 0.31 0.17
+## Proportion Var        0.53 0.21 0.16 0.06 0.03
+## Cumulative Var        0.53 0.74 0.90 0.97 1.00
+## Proportion Explained  0.53 0.21 0.16 0.06 0.03
+## Cumulative Proportion 0.53 0.74 0.90 0.97 1.00
+## 
+## Mean item complexity =  1.9
+## Test of the hypothesis that 5 components are sufficient.
+## 
+## The root mean square of the residuals (RMSR) is  0 
+##  with the empirical chi square  0  with prob &lt;  NA 
+## 
+## Fit based upon off diagonal values = 1</code></pre>
+<p><br></p>
+</div>
+<div id="determining-the-number-of-principal-components" class="section level1">
+<h1><span class="header-section-number">4</span> Determining the number of principal components</h1>
+<div id="using-the-scree-method" class="section level2">
+<h2><span class="header-section-number">4.1</span> Using the Scree method</h2>
+<pre class="r"><code># LOOKING FOR THE ELBOW!--&gt; happens at 2, we should retain component 1 as it has the steep curve before the elbow
+screeplot(swiss.pca, type=&quot;line&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" /><!-- --></p>
+<pre class="r"><code>library(nFactors)
+ev = eigen(cor(swiss))
+ap = parallel(subject=nrow(swiss),var=ncol(swiss),rep=100,cent=.05)
+nS = nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-2.png" /><!-- --></p>
+</div>
+<div id="using-the-scree-method-1" class="section level2">
+<h2><span class="header-section-number">4.2</span> Using the Scree method</h2>
+<pre class="r"><code>swiss.pca$sdev</code></pre>
+<pre><code>## [1] 1.6228065 1.0354873 0.9033447 0.5592765 0.4067472</code></pre>
+<pre class="r"><code>swiss.pca$sdev ^ 2</code></pre>
+<pre><code>## [1] 2.6335008 1.0722340 0.8160316 0.3127902 0.1654433</code></pre>
+<pre class="r"><code>which(swiss.pca$sdev ^ 2&gt; 1)</code></pre>
+<pre><code>## [1] 1 2</code></pre>
+<pre class="r"><code>screeplot(swiss.pca, type=&quot;line&quot;)
+abline(h=1, col=&quot;red&quot;, lty= 3)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" /><!-- --></p>
+<p><br></p>
+</div>
+</div>
+<div id="visualizing-multivariate-data-using-biplot" class="section level1">
+<h1><span class="header-section-number">5</span> Visualizing multivariate data using biplot</h1>
+<pre class="r"><code># Using the 2 Principal components, we can plot the data that is associated with it
+plot(swiss.pca$x[,1], swiss.pca$x[,2], xlim=c(-4,4))
+text(swiss.pca$x[,1], swiss.pca$x[,2], rownames(swiss.pca$x),
+       cex=0.7, pos=4, col=&quot;red&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" /><!-- --></p>
+<pre class="r"><code># The biplot then helps us plot on top of the previous plot, the actual variables that were mapped to the principal components, for example, Infant mortality, catholic and agriculture score high in PC2. You can see how &quot;Sanne&quot; is positioned in the 2-D space and how is it related with the underlying factors
+biplot(swiss.pca)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-10-2.png" /><!-- --></p>
+<pre class="r"><code># Doing the same with a ggplot type plot with extra info
+library(devtools)
+library(ggbiplot) 
+
+g = ggbiplot(swiss.pca, obs.scale = 1, var.scale = 1,
+             ellipse = TRUE,
+             circle = TRUE)
+print(g)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-10-3.png" /><!-- --></p>
+<p><br></p>
+</div>
+<div id="dimension-reduction-with-mds" class="section level1">
+<h1><span class="header-section-number">6</span> Dimension reduction with MDS</h1>
+<p><img src="images/8.PNG" width="704" /><img src="images/9.PNG" width="464" /></p>
+<div id="metric-mds" class="section level2">
+<h2><span class="header-section-number">6.1</span> Metric MDS</h2>
+<p>Also known as PCA. First it transforms distances into similarities. It basically tries to linearly project original data points to a subspace by performing PCA on similarities.</p>
+<pre class="r"><code>swiss.dist = dist(swiss)
+swiss.mds = cmdscale(swiss.dist, k=2)
+
+plot(swiss.mds[,1], swiss.mds[,2], type = &quot;n&quot;, main = &quot;cmdscale(stats)&quot;)
+text(swiss.mds[,1], swiss.mds[,2], rownames(swiss), cex = 0.9, xpd = TRUE)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-12-1.png" /><!-- --></p>
+</div>
+<div id="non-metric-mds" class="section level2">
+<h2><span class="header-section-number">6.2</span> Non metric MDS</h2>
+<p>In this case we can also perform a non-linear projection of similarities by minimizing the strees value.</p>
+<p><img src="images/10.PNG" width="512" /></p>
+<pre class="r"><code>library(MASS)
+swiss.nmmds = isoMDS(swiss.dist, k=2)</code></pre>
+<pre><code>## initial  value 2.979731 
+## iter   5 value 2.431486
+## iter  10 value 2.343353
+## final  value 2.338839 
+## converged</code></pre>
+<pre class="r"><code>plot(swiss.nmmds$points, type = &quot;n&quot;, main = &quot;isoMDS (MASS)&quot;)
+text(swiss.nmmds$points, rownames(swiss), cex = 0.9, xpd = TRUE)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" /><!-- --></p>
+<pre class="r"><code># Shepard plot to show how well do the projected distances match the original matrix distances
+swiss.sh = Shepard(swiss.dist, swiss.mds)
+plot(swiss.sh, pch = &quot;.&quot;)
+lines(swiss.sh$x, swiss.sh$yf, type = &quot;S&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-14-2.png" /><!-- --></p>
+</div>
+<div id="presenting-an-mds-object-as-a-graph" class="section level2">
+<h2><span class="header-section-number">6.3</span> Presenting an MDS object as a graph</h2>
+<pre class="r"><code>library(igraph)
+swiss.sample = swiss[1:10,]
+g = graph.full(nrow(swiss.sample))
+V(g)$label = rownames(swiss.sample)
+layout = layout.mds(g, dist = as.matrix(dist(swiss.sample)))
+plot(g, layout = layout, vertex.size = 3)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" /><!-- --></p>
+<pre class="r"><code>swiss.dist = dist(swiss)
+swiss.mds = cmdscale(swiss.dist, k=2)
+plot(swiss.mds[,1], swiss.mds[,2], type=&quot;n&quot;)
+text(swiss.mds[,1], swiss.mds[,2], rownames(swiss), cex = 0.9, xpd = TRUE)
+swiss.pca = prcomp(swiss)
+text(-swiss.pca$x[,1],-swiss.pca$x[,2], rownames(swiss),
+        col=&quot;blue&quot;, adj = c(0.2,-0.5),cex = 0.9, xpd = TRUE)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-15-2.png" /><!-- --></p>
+<p><br></p>
+</div>
+</div>
+<div id="dimension-reduction-with-svd" class="section level1">
+<h1><span class="header-section-number">7</span> Dimension reduction with SVD</h1>
+<p><img src="images/11.PNG" width="740" /></p>
+<pre class="r"><code>swiss.svd = svd(swiss)
+
+plot(swiss.svd$d^2/sum(swiss.svd$d^2), type=&quot;l&quot;, xlab=&quot; Singular vector&quot;,
+     ylab = &quot;Variance explained&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" /><!-- --></p>
+<pre class="r"><code>plot(cumsum(swiss.svd$d^2/sum(swiss.svd$d^2)), type=&quot;l&quot;,
+     xlab=&quot;Singular vector&quot;, ylab = &quot;Cumulative percent of variance explained&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-17-2.png" /><!-- --></p>
+<pre class="r"><code># Reconstruct the data with only 1 singular vector
+swiss.recon = swiss.svd$u[,1] %*% diag(swiss.svd$d[1],
+                                       length(1), length(1)) %*% t(swiss.svd$v[,1])
+
+# Compare the original with the new reconstructed -&gt; images are very similar to the reconstruction with less dimensions has worked
+par(mfrow=c(1,2))
+image(as.matrix(swiss), main=&quot;swiss data Image&quot;)
+image(swiss.recon, main=&quot;Reconstructed Image&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-17-3.png" /><!-- --></p>
+<pre class="r"><code># PCA is equivalent to the V component of SVD. Check the results below.
+svd.m = svd(scale(swiss))
+svd.m$v</code></pre>
+<pre><code>##             [,1]        [,2]         [,3]       [,4]        [,5]
+## [1,]  0.52396452 -0.25834215  0.003003672 -0.8090741  0.06411415
+## [2,] -0.57185792 -0.01145981 -0.039840522 -0.4224580 -0.70198942
+## [3,] -0.49150243  0.19028476  0.539337412 -0.3321615  0.56656945
+## [4,]  0.38530580  0.36956307  0.725888143  0.1007965 -0.42176895
+## [5,]  0.09167606  0.87197641 -0.424976789 -0.2154928  0.06488642</code></pre>
+<pre class="r"><code>pca.m = prcomp(swiss,scale=TRUE)
+pca.m$rotation</code></pre>
+<pre><code>##                          PC1         PC2          PC3        PC4         PC5
+## Agriculture       0.52396452 -0.25834215  0.003003672 -0.8090741  0.06411415
+## Examination      -0.57185792 -0.01145981 -0.039840522 -0.4224580 -0.70198942
+## Education        -0.49150243  0.19028476  0.539337412 -0.3321615  0.56656945
+## Catholic          0.38530580  0.36956307  0.725888143  0.1007965 -0.42176895
+## Infant.Mortality  0.09167606  0.87197641 -0.424976789 -0.2154928  0.06488642</code></pre>
+<div id="compressing-images-using-svd" class="section level2">
+<h2><span class="header-section-number">7.1</span> Compressing images using SVD</h2>
+<pre class="r"><code># Read the image
+library(bmp)
+lenna = read.bmp(&quot;lena512.bmp&quot;) # --&gt; we read the image as a numeric matrix
+lenna = t(lenna)[,nrow(lenna):1]
+image(lenna)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.png" /><!-- --></p>
+<pre class="r"><code># Perform SVD on image and plot % of variance explained
+lenna.svd = svd(scale(lenna))
+plot(lenna.svd$d^2/sum(lenna.svd$d^2), type=&quot;l&quot;, xlab=&quot; Singular vector&quot;,
+     ylab = &quot;Variance explained&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-18-2.png" /><!-- --></p>
+<pre class="r"><code># Obtain the point at which the singular vector can explain more than 90% of the variance
+min(which(cumsum(lenna.svd$d^2/sum(lenna.svd$d^2))&gt; 0.9))</code></pre>
+<pre><code>## [1] 18</code></pre>
+<pre class="r"><code># Create a function that will reconstruct the image with a certain number of components that the user specifies
+lenna_compression = function(dim){
+   u=as.matrix(lenna.svd$u[, 1:dim])
+   v=as.matrix(lenna.svd$v[, 1:dim])
+   d=as.matrix(diag(lenna.svd$d)[1:dim, 1:dim])
+   image(u%*%d%*%t(v))
+}
+
+# Since we discovered above the 18 was the number of components that could explain more than 90% of the variance, lets plot the image
+lenna_compression(18)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-18-3.png" /><!-- --></p>
+<pre class="r"><code># Do the same but with 99% of the variance
+min(which(cumsum(lenna.svd$d^2/sum(lenna.svd$d^2))&gt; 0.99))</code></pre>
+<pre><code>## [1] 92</code></pre>
+<pre class="r"><code>lenna_compression(92)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-18-4.png" /><!-- --></p>
+<p><br></p>
+</div>
+</div>
+<div id="nonlinear-dimension-reduction" class="section level1">
+<h1><span class="header-section-number">8</span> Nonlinear dimension reduction</h1>
+<p><img src="images/12.PNG" width="710" /></p>
+<div id="using-isomap" class="section level2">
+<h2><span class="header-section-number">8.1</span> Using ISOMAP</h2>
+<pre class="r"><code>library(RnavGraphImageData)
+library(vegan)
+
+# Load data and plot 1 number
+data(digits)
+sample.digit = matrix(digits[,3000],ncol = 16, byrow=FALSE)
+image(t(sample.digit)[,nrow(sample.digit):1])</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-20-1.png" /><!-- --></p>
+<pre class="r"><code># Randomnly pick 600 digits
+set.seed(2)
+digit.idx = sample(1:ncol(digits),size = 600)
+digit.select = digits[,digit.idx]
+
+# Transpose the numbers and compute the dissimilarity between objects and calculate the distance between objects
+digits.Transpose = t(digit.select)
+digit.dist = vegdist(digits.Transpose, method=&quot;euclidean&quot;)
+
+# Perform dimension reduction
+digit.isomap = isomap(digit.dist,k = 8, ndim=6, fragmentedOK = TRUE)
+plot(digit.isomap)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-20-2.png" /><!-- --></p>
+<pre class="r"><code># Overlay the scatter plot with the spantree
+digit.st = spantree(digit.dist)
+digit.plot = plot(digit.isomap, main=&quot;isomap k=8&quot;)
+lines(digit.st, digit.plot, col=&quot;red&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-20-3.png" /><!-- --></p>
+</div>
+<div id="using-local-linear-embedding" class="section level2">
+<h2><span class="header-section-number">8.2</span> Using Local Linear Embedding</h2>
+<pre class="r"><code>library(lle)
+
+data( lle_scurve_data )
+
+X = lle_scurve_data
+results = lle( X=X , m=2, k=12, id=TRUE)</code></pre>
+<pre><code>## finding neighbours
+## calculating weights
+## intrinsic dim: mean=2.47875, mode=2
+## computing coordinates</code></pre>
+<pre class="r"><code>str( results )</code></pre>
+<pre><code>## List of 4
+##  $ Y     : num [1:800, 1:2] -1.586 -0.415 0.896 0.513 1.477 ...
+##  $ X     : num [1:800, 1:3] 0.955 -0.66 -0.983 0.954 0.958 ...
+##  $ choise: NULL
+##  $ id    : num [1:800] 3 3 2 3 2 2 2 3 3 3 ...</code></pre>
+<pre class="r"><code>plot( results$Y, main=&quot;embedded data&quot;, xlab=expression(y[1]),
+      ylab=expression(y[2]) )</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-21-1.png" /><!-- --></p>
+<pre class="r"><code>plot_lle( results$Y, X, FALSE, col=&quot;red&quot;, inter=TRUE )</code></pre>
+<pre><code>## NULL</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
